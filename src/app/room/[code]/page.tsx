@@ -534,6 +534,7 @@ export default function RoomPage() {
             )}
           </div>
         </div>
+        </div>
       </div>
     )
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,22 +10,45 @@ import { generateInviteCode, validateInviteCode } from '@/lib/utils'
 import { Users, Plus, LogIn, Gamepad2 } from 'lucide-react'
 
 export default function Home() {
+  // 生成默认玩家名称
+  const generateDefaultName = () => {
+    const adjectives = ['勇敢的', '聪明的', '幸运的', '机智的', '冷静的', '敏捷的', '神秘的', '优雅的']
+    const nouns = ['玩家', '棋手', '高手', '大师', '新手', '探索者', '挑战者', '战士']
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)]
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)]
+    const randomNumber = Math.floor(Math.random() * 999) + 1
+    return `${randomAdjective}${randomNoun}${randomNumber}`
+  }
+
   const [playerName, setPlayerName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const router = useRouter()
 
-  const handleCreateRoom = () => {
+  // 组件加载时设置默认名称
+  useEffect(() => {
+    if (!playerName) {
+      setPlayerName(generateDefaultName())
+    }
+  }, [])
+
+  const handleCreateRoom = async () => {
     if (!playerName.trim()) {
       alert('请输入玩家名称')
       return
     }
     
     setIsCreating(true)
-    // 生成邀请码并跳转到房间页面
-    const code = generateInviteCode()
-    router.push(`/room/${code}?name=${encodeURIComponent(playerName.trim())}&create=true`)
+    try {
+      // 生成邀请码并跳转到房间页面
+      const code = generateInviteCode()
+      router.push(`/room/${code}?name=${encodeURIComponent(playerName.trim())}&create=true`)
+    } catch (error) {
+      console.error('创建房间失败:', error)
+      alert('创建房间失败，请重试')
+      setIsCreating(false)
+    }
   }
 
   const handleJoinRoom = async () => {
@@ -86,13 +109,22 @@ export default function Home() {
         {/* 玩家名称输入 - 全局共用 */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-2xl">
           <div className="space-y-4">
-            <label className="block text-white/90 text-sm font-medium" htmlFor="playerName">
-              您的名称 <span className="text-red-400">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-white/90 text-sm font-medium" htmlFor="playerName">
+                您的名称 <span className="text-red-400">*</span>
+              </label>
+              <button
+                onClick={() => setPlayerName(generateDefaultName())}
+                className="text-xs text-blue-300 hover:text-blue-200 transition-colors px-2 py-1 bg-blue-500/20 rounded"
+                type="button"
+              >
+                重新生成
+              </button>
+            </div>
             <input
               id="playerName"
               className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-              placeholder="请先输入您的名称（必填）"
+              placeholder="系统已为您生成默认名称，可修改"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               maxLength={20}
@@ -100,6 +132,11 @@ export default function Home() {
             {!playerName.trim() && (
               <p className="text-yellow-400 text-sm">
                 ⚠️ 创建或加入房间前，请先填写您的名称
+              </p>
+            )}
+            {playerName.trim() && (
+              <p className="text-green-400 text-sm">
+                ✓ 好名字！现在可以创建或加入房间了
               </p>
             )}
           </div>
