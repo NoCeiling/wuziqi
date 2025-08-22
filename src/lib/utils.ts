@@ -13,6 +13,15 @@ export function generateInviteCode(): string {
   for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
+  // 添加时间戳的最后两位来增加唯一性
+  const timestamp = Date.now().toString()
+  const timeChars = timestamp.slice(-2)
+  
+  // 如果生成的码长度不足6位，用时间戳字符替换最后几位
+  if (result.length >= 2) {
+    result = result.slice(0, 4) + timeChars
+  }
+  
   return result
 }
 

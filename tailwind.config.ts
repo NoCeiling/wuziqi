@@ -11,6 +11,9 @@ const config: Config = {
       gridTemplateColumns: {
         '15': 'repeat(15, minmax(0, 1fr))',
       },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

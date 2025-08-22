@@ -72,7 +72,18 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'create-room': {
         const { playerName, playerId } = data
-        const roomCode = generateInviteCode()
+        
+        // 确保生成唯一的房间码
+        let roomCode: string
+        let attempts = 0
+        do {
+          roomCode = generateInviteCode()
+          attempts++
+          if (attempts > 10) {
+            return NextResponse.json({ success: false, error: '无法生成唯一房间码，请重试' })
+          }
+        } while (rooms.has(roomCode))
+        
         const roomId = generateRoomId()
         
         const player: PlayerInfo = {
@@ -101,20 +112,48 @@ export async function POST(request: NextRequest) {
       
       case 'join-room': {
         const { code, playerName, playerId } = data
+        console.log(`尝试加入房间: ${code}, 玩家: ${playerName}, ID: ${playerId}`)
+        
         const room = rooms.get(code)
         
         if (!room) {
+          console.log(`房间不存在: ${code}`)
           return NextResponse.json({ success: false, error: '房间不存在' })
         }
         
+        console.log(`房间现有玩家数: ${room.players.length}, 玩家列表:`, room.players.map(p => ({ id: p.id, name: p.name })))
+        
+        // 检查玩家是否已经在房间中
+        const existingPlayerIndex = room.players.findIndex(p => p.id === playerId)
+        if (existingPlayerIndex !== -1) {
+          console.log(`玩家已在房间中: ${playerId}`)
+          // 更新玩家名称以防变更
+          room.players[existingPlayerIndex].name = playerName
+          return NextResponse.json({ success: true, room })
+        }
+        
+        // 检查是否有相同名称的玩家（可能是重复加入）
+        const existingPlayerByName = room.players.find(p => p.name === playerName)
+        if (existingPlayerByName) {
+          console.log(`检测到同名玩家，更新ID: ${playerName} -> ${playerId}`)
+          // 更新玩家ID
+          existingPlayerByName.id = playerId
+          playerRooms.set(playerId, code)
+          return NextResponse.json({ success: true, room })
+        }
+        
+        // 检查房间是否已满
         if (room.players.length >= 2) {
-          return NextResponse.json({ success: false, error: '房间已满' })
+          console.log(`房间已满: ${code}, 现有玩家: ${room.players.length}`)
+          return NextResponse.json({ success: false, error: '房间已满，最多2人' })
         }
         
         if (room.gameStatus !== 'waiting') {
-          return NextResponse.json({ success: false, error: '游戏已开始' })
+          console.log(`游戏已开始: ${code}, 状态: ${room.gameStatus}`)
+          return NextResponse.json({ success: false, error: '游戏已开始，无法加入' })
         }
         
+        // 添加新玩家
         const player: PlayerInfo = {
           id: playerId,
           name: playerName,
@@ -125,6 +164,7 @@ export async function POST(request: NextRequest) {
         room.players.push(player)
         playerRooms.set(playerId, code)
         
+        console.log(`玩家成功加入房间: ${playerId} -> ${code}, 房间现有 ${room.players.length} 人`)
         return NextResponse.json({ success: true, room })
       }
       
