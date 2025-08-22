@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎮 在线五子棋游戏
 
-## Getting Started
+一个精美的在线五子棋游戏，支持实时多人对战，使用 Next.js 构建，完美适配 Vercel 部署。
 
-First, run the development server:
+## ✨ 功能特点
 
+- 🎯 **实时对战** - 支持两人实时五子棋对战
+- 🔗 **邀请码系统** - 生成6位邀请码，轻松邀请朋友
+- 🎨 **精美界面** - 现代化设计，响应式布局
+- 📱 **多设备支持** - 完美适配桌面端和移动端
+- ⚡ **快速部署** - 一键部署到 Vercel
+- 🏆 **智能判胜** - 自动检测五子连珠获胜
+
+## 🚀 快速开始
+
+### 本地开发
+
+1. **克隆项目**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd wuziqi
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **安装依赖**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **启动开发服务器**
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. **打开浏览器**
+访问 [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+### 🔧 Vercel 部署
 
-To learn more about Next.js, take a look at the following resources:
+#### 方法一：通过 Vercel CLI
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **安装 Vercel CLI**
+```bash
+npm i -g vercel
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **登录 Vercel**
+```bash
+vercel login
+```
 
-## Deploy on Vercel
+3. **部署项目**
+```bash
+vercel
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### 方法二：通过 Vercel 网站
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 访问 [vercel.com](https://vercel.com)
+2. 登录你的账号
+3. 点击 "New Project"
+4. 导入你的 Git 仓库
+5. 选择框架为 "Next.js"
+6. 点击 "Deploy"
+
+## 🎮 如何游戏
+
+1. **输入玩家名称** - 在主页输入你的名字
+2. **创建房间** - 点击"创建新房间"生成邀请码
+3. **邀请朋友** - 分享房间代码给朋友
+4. **开始对战** - 等朋友加入后点击"开始游戏"
+5. **轮流下棋** - 黑棋先手，连成五子获胜！
+
+## 🛠️ 技术栈
+
+- **前端框架**: Next.js 15
+- **样式**: Tailwind CSS + shadcn/ui
+- **类型安全**: TypeScript
+- **部署平台**: Vercel
+- **状态管理**: React Hooks
+- **实时通信**: HTTP 轮询（适配 Vercel 无服务器环境）
+
+## 🎯 游戏规则
+
+- 🔸 **棋盘**: 15×15 格子
+- ⚫ **黑棋先手**: 房主默认为黑棋
+- ⚪ **白棋后手**: 第二位玩家为白棋
+- 🏆 **获胜条件**: 横、竖、斜任意方向连成五子
+- 🔄 **轮流下棋**: 每次只能下一颗棋子
+
+## 🌟 特色功能
+
+### 🔐 邀请码系统
+- 自动生成6位随机邀请码
+- 大写字母和数字组合
+- 一键复制分享
+
+### 🎨 精美界面
+- 渐变背景设计
+- 卡片式布局
+- 图标丰富的按钮
+- 实时状态显示
+
+### 📱 响应式设计
+- 桌面端：侧边栏布局
+- 移动端：垂直堆叠布局
+- 自适应棋盘大小
+
+## 🔧 环境要求
+
+- Node.js 18+ 
+- npm 或 yarn
+- 现代浏览器（支持 ES6+）
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+MIT License
+
+---
+
+**立即体验在线五子棋游戏！** 🎉

@@ -1,103 +1,144 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { generateInviteCode, validateInviteCode } from '@/lib/utils'
+import { Users, Plus, LogIn, Gamepad2 } from 'lucide-react'
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [playerName, setPlayerName] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
+  const router = useRouter()
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleCreateRoom = () => {
+    if (!playerName.trim()) {
+      alert('请输入玩家名称')
+      return
+    }
+    
+    setIsCreating(true)
+    // 生成邀请码并跳转到房间页面
+    const code = generateInviteCode()
+    router.push(`/room/${code}?name=${encodeURIComponent(playerName.trim())}&create=true`)
+  }
+
+  const handleJoinRoom = () => {
+    if (!playerName.trim()) {
+      alert('请输入玩家名称')
+      return
+    }
+    
+    if (!inviteCode.trim()) {
+      alert('请输入邀请码')
+      return
+    }
+    
+    if (!validateInviteCode(inviteCode.trim().toUpperCase())) {
+      alert('邀请码格式错误，请输入6位字母数字组合')
+      return
+    }
+    
+    setIsJoining(true)
+    router.push(`/room/${inviteCode.trim().toUpperCase()}?name=${encodeURIComponent(playerName.trim())}`)
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* 标题 */}
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <Gamepad2 className="h-8 w-8 text-indigo-600" />
+            <h1 className="text-4xl font-bold text-gray-900">在线五子棋</h1>
+          </div>
+          <p className="text-gray-600">与朋友一起享受经典五子棋游戏</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* 玩家名称输入 */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>玩家信息</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="playerName">玩家名称</Label>
+              <Input
+                id="playerName"
+                placeholder="请输入您的名称"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={20}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 创建房间 */}
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg text-green-800 flex items-center space-x-2">
+              <Plus className="h-5 w-5" />
+              <span>创建房间</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700" 
+              onClick={handleCreateRoom}
+              disabled={isCreating || !playerName.trim()}
+            >
+              {isCreating ? '创建中...' : '创建新房间'}
+            </Button>
+            <p className="text-sm text-green-700 mt-2 text-center">
+              创建房间后将获得邀请码，分享给朋友即可开始游戏
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* 加入房间 */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg text-blue-800 flex items-center space-x-2">
+              <LogIn className="h-5 w-5" />
+              <span>加入房间</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="inviteCode">邀请码</Label>
+              <Input
+                id="inviteCode"
+                placeholder="请输入6位邀请码"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                maxLength={6}
+                className="font-mono text-center text-lg tracking-wider"
+              />
+            </div>
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700" 
+              onClick={handleJoinRoom}
+              disabled={isJoining || !playerName.trim() || !inviteCode.trim()}
+            >
+              {isJoining ? '加入中...' : '加入房间'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* 底部信息 */}
+        <div className="text-center text-sm text-gray-500">
+          <p>© 2024 在线五子棋 - 支持实时对战</p>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
