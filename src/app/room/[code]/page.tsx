@@ -53,31 +53,6 @@ export default function RoomPage() {
     }
   }, [playerId])
 
-  // 获取房间状态
-  const fetchRoomState = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/game?code=${code}`)
-      const result = await response.json()
-      if (result.success) {
-        setRoom(result.room)
-        setError('')
-      } else {
-        console.warn('获取房间状态失败:', result.error)
-        // 如果房间不存在，可能是服务器重启了，停止轮询
-        if (result.error === '房间不存在') {
-          setError('连接中断，房间可能已失效。请重新创建房间。')
-          // 停止轮询，避免持续的无效请求
-          return 'stop-polling'
-        }
-        setError(result.error)
-      }
-    } catch (error) {
-      console.error('Failed to fetch room state:', error)
-      setError('网络错误')
-    }
-    return 'continue'
-  }, [code])
-
   // 初始化房间
   useEffect(() => {
     if (!playerName) {
@@ -118,15 +93,38 @@ export default function RoomPage() {
   useEffect(() => {
     if (!room) return
 
+    const pollRoomState = async () => {
+      try {
+        const response = await fetch(`/api/game?code=${code}`)
+        const result = await response.json()
+        if (result.success) {
+          setRoom(result.room)
+          setError('')
+        } else {
+          console.warn('获取房间状态失败:', result.error)
+          // 如果房间不存在，可能是服务器重启了，停止轮询
+          if (result.error === '房间不存在') {
+            setError('连接中断，房间可能已失效。请重新创建房间。')
+            return false // 停止轮询
+          }
+          setError(result.error)
+        }
+      } catch (error) {
+        console.error('Failed to fetch room state:', error)
+        setError('网络错误')
+      }
+      return true // 继续轮询
+    }
+
     const interval = setInterval(async () => {
-      const result = await fetchRoomState()
-      if (result === 'stop-polling') {
+      const shouldContinue = await pollRoomState()
+      if (!shouldContinue) {
         clearInterval(interval)
       }
     }, 2000) // 每2秒轮询一次
     
     return () => clearInterval(interval)
-  }, [room, fetchRoomState])
+  }, [room, code])
 
   const handleCopyCode = async () => {
     const currentCode = room?.code || code
