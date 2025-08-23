@@ -966,7 +966,6 @@ export default function RoomPage() {
                     </div>
                   </div>
                 )}
-              )}
               
               {/* 游戏控制 */}
               <div className="mt-6 flex justify-center space-x-4">
