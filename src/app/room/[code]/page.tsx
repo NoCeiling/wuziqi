@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 import type { Room } from '@/types/game'
 import { cn, generateRoomId } from '@/lib/utils'
 import { Copy, Users, Clock, Crown, User, ArrowLeft, Trophy, Palette } from 'lucide-react'
