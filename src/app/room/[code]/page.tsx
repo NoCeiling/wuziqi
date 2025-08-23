@@ -93,7 +93,7 @@ export default function RoomPage() {
   useEffect(() => {
     if (!room) return
 
-    const pollRoomState = async () => {
+    const interval = setInterval(async () => {
       try {
         const response = await fetch(`/api/game?code=${code}`)
         const result = await response.json()
@@ -102,29 +102,20 @@ export default function RoomPage() {
           setError('')
         } else {
           console.warn('获取房间状态失败:', result.error)
-          // 如果房间不存在，可能是服务器重启了，停止轮询
           if (result.error === '房间不存在') {
             setError('连接中断，房间可能已失效。请重新创建房间。')
-            return false // 停止轮询
+          } else {
+            setError(result.error)
           }
-          setError(result.error)
         }
       } catch (error) {
         console.error('Failed to fetch room state:', error)
         setError('网络错误')
       }
-      return true // 继续轮询
-    }
-
-    const interval = setInterval(async () => {
-      const shouldContinue = await pollRoomState()
-      if (!shouldContinue) {
-        clearInterval(interval)
-      }
-    }, 500) // 每0.5秒轮询一次
+    }, 100) // 每0.1秒轮询一次
     
     return () => clearInterval(interval)
-  }, [room, code])
+  }, [room?.code, code]) // 只依赖于房间码
 
   const handleCopyCode = async () => {
     const currentCode = room?.code || code
