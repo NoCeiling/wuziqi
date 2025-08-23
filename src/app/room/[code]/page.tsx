@@ -121,7 +121,7 @@ export default function RoomPage() {
       if (!shouldContinue) {
         clearInterval(interval)
       }
-    }, 2000) // 每2秒轮询一次
+    }, 100) // 每0.1秒轮询一次
     
     return () => clearInterval(interval)
   }, [room, code])
