@@ -12,6 +12,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh">
+      <head>
+        {/* 禁用开发模式热重载 */}
+        {process.env.NODE_ENV === 'production' && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if (typeof window !== 'undefined') {
+                  window.__NEXT_RELOAD_SCRIPT_DISABLED = true;
+                }
+              `,
+            }}
+          />
+        )}
+      </head>
       <body>
         {children}
       </body>
