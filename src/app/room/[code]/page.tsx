@@ -115,7 +115,7 @@ export default function RoomPage() {
     }, 100) // 每0.1秒轮询一次
     
     return () => clearInterval(interval)
-  }, [room?.code, code]) // 只依赖于房间码
+  }, [code, room]) // 修复依赖项警告
 
   const handleCopyCode = async () => {
     const currentCode = room?.code || code
@@ -593,7 +593,6 @@ export default function RoomPage() {
   }
 
   const currentPlayer = room.players.find(p => p.id === playerId)
-  const isRoomOwner = room.players[0]?.id === playerId
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
