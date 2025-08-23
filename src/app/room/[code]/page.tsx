@@ -21,7 +21,7 @@ export default function RoomPage() {
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
-  const [boardStyle, setBoardStyle] = useState<'classic' | 'vintage'>('vintage') // 添加棋盘风格状态
+  const [boardStyle, setBoardStyle] = useState<'classic' | 'vintage'>('classic') // 默认使用经典风格
   
   // 棋盘颜色配置状态
   const [classicColors, setClassicColors] = useState({
@@ -228,15 +228,6 @@ export default function RoomPage() {
     }
   }
 
-  const handleRestartGame = async () => {
-    const result = await callGameAPI('restart-game')
-    if (result.success) {
-      setRoom(result.room)
-    } else {
-      alert(result.error)
-    }
-  }
-
   const handleMakeMove = async (row: number, col: number) => {
     if (room?.gameStatus !== 'playing') return
     if (room.board[row][col] !== null) return
@@ -416,7 +407,7 @@ export default function RoomPage() {
           }}>
           {/* 木质背景效果 - 增强版 */}
           <div 
-            className="grid grid-cols-15 gap-1 p-8 rounded-xl border-4 aspect-square max-w-lg mx-auto relative"
+            className="grid grid-cols-15 gap-0 p-6 rounded-xl border-4 aspect-square max-w-lg mx-auto relative"
             style={{
               borderColor: vintageColors.border,
               backgroundColor: vintageColors.background,
@@ -967,8 +958,8 @@ export default function RoomPage() {
               
               {/* 游戏控制 */}
               <div className="mt-6 flex justify-center space-x-4">
-                {/* 等待和准备状态 */}
-                {(room.gameStatus === 'waiting' || room.gameStatus === 'ready') && currentPlayer && (
+                {/* 等待、准备和结束状态的准备按钮 */}
+                {(room.gameStatus === 'waiting' || room.gameStatus === 'ready' || room.gameStatus === 'finished') && currentPlayer && (
                   <Button 
                     onClick={handleToggleReady} 
                     className={cn(
@@ -989,16 +980,6 @@ export default function RoomPage() {
                       等待另一位玩家加入...
                     </p>
                   </div>
-                )}
-                
-                {/* 游戏结束后的重新开始按钮 */}
-                {room.gameStatus === 'finished' && (
-                  <Button 
-                    onClick={handleRestartGame} 
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-8 py-3 rounded-xl shadow-lg transition-all"
-                  >
-                    重新开始
-                  </Button>
                 )}
               </div>
             </div>
