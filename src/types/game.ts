@@ -1,5 +1,5 @@
 // 游戏状态类型
-export type GameStatus = 'waiting' | 'playing' | 'finished'
+export type GameStatus = 'waiting' | 'ready' | 'playing' | 'finished'
 
 // 棋子类型
 export type Player = 'black' | 'white'
@@ -22,6 +22,7 @@ export interface PlayerInfo {
   name: string
   color: Player | null
   ready: boolean
+  wins: number // 胜局数
 }
 
 // 房间信息
@@ -34,6 +35,7 @@ export interface Room {
   currentPlayer: Player
   winner: Player | null
   createdAt: Date
+  gameCount: number // 对局总数
 }
 
 // Socket 事件类型
@@ -42,6 +44,7 @@ export interface ServerToClientEvents {
   'room-error': (error: string) => void
   'player-joined': (player: PlayerInfo) => void
   'player-left': (playerId: string) => void
+  'player-ready': (playerId: string, ready: boolean) => void
   'game-started': () => void
   'move-made': (position: Position, player: Player) => void
   'game-over': (winner: Player | null) => void
@@ -52,6 +55,7 @@ export interface ClientToServerEvents {
   'create-room': (playerName: string) => void
   'join-room': (code: string, playerName: string) => void
   'leave-room': () => void
+  'toggle-ready': () => void
   'make-move': (position: Position) => void
-  'start-game': () => void
+  'restart-game': () => void
 }

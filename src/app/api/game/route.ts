@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
           id: playerId,
           name: playerName,
           color: 'black',
-          ready: true
+          ready: false,
+          wins: 0
         }
         
         const room: Room = {
@@ -101,7 +102,8 @@ export async function POST(request: NextRequest) {
           board: createEmptyBoard(),
           currentPlayer: 'black',
           winner: null,
-          createdAt: new Date()
+          createdAt: new Date(),
+          gameCount: 0
         }
         
         rooms.set(roomCode, room)
@@ -158,7 +160,8 @@ export async function POST(request: NextRequest) {
           id: playerId,
           name: playerName,
           color: 'white',
-          ready: true
+          ready: false,
+          wins: 0
         }
         
         room.players.push(player)
@@ -168,7 +171,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, room })
       }
       
-      case 'start-game': {
+      case 'toggle-ready': {
         const { playerId } = data
         const roomCode = playerRooms.get(playerId)
         
@@ -181,18 +184,30 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, error: '房间不存在' })
         }
         
-        if (room.players[0]?.id !== playerId) {
-          return NextResponse.json({ success: false, error: '只有房主可以开始游戏' })
+        if (room.gameStatus === 'playing') {
+          return NextResponse.json({ success: false, error: '游戏进行中，无法更改准备状态' })
         }
         
-        if (room.players.length !== 2) {
-          return NextResponse.json({ success: false, error: '需要两名玩家才能开始游戏' })
+        const player = room.players.find(p => p.id === playerId)
+        if (!player) {
+          return NextResponse.json({ success: false, error: '未找到玩家' })
         }
         
-        room.gameStatus = 'playing'
-        room.board = createEmptyBoard()
-        room.currentPlayer = 'black'
-        room.winner = null
+        // 切换准备状态
+        player.ready = !player.ready
+        
+        // 检查是否可以开始游戏
+        if (room.players.length === 2 && room.players.every(p => p.ready)) {
+          room.gameStatus = 'playing'
+          room.board = createEmptyBoard()
+          room.currentPlayer = 'black'
+          room.winner = null
+          room.gameCount++
+        } else if (room.players.every(p => p.ready)) {
+          room.gameStatus = 'ready'
+        } else {
+          room.gameStatus = 'waiting'
+        }
         
         return NextResponse.json({ success: true, room })
       }
@@ -230,9 +245,42 @@ export async function POST(request: NextRequest) {
         if (isWin) {
           room.gameStatus = 'finished'
           room.winner = player.color
+          
+          // 记录胜局
+          player.wins++
+          
+          // 重置准备状态以便下一局
+          room.players.forEach(p => p.ready = false)
         } else {
           room.currentPlayer = room.currentPlayer === 'black' ? 'white' : 'black'
         }
+        
+        return NextResponse.json({ success: true, room })
+      }
+      
+      case 'restart-game': {
+        const { playerId } = data
+        const roomCode = playerRooms.get(playerId)
+        
+        if (!roomCode) {
+          return NextResponse.json({ success: false, error: '未找到房间' })
+        }
+        
+        const room = rooms.get(roomCode)
+        if (!room) {
+          return NextResponse.json({ success: false, error: '房间不存在' })
+        }
+        
+        if (room.gameStatus !== 'finished') {
+          return NextResponse.json({ success: false, error: '游戏尚未结束' })
+        }
+        
+        // 重置游戏状态
+        room.gameStatus = 'waiting'
+        room.board = createEmptyBoard()
+        room.currentPlayer = 'black'
+        room.winner = null
+        room.players.forEach(p => p.ready = false)
         
         return NextResponse.json({ success: true, room })
       }

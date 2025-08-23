@@ -219,8 +219,17 @@ export default function RoomPage() {
     }
   }
 
-  const handleStartGame = async () => {
-    const result = await callGameAPI('start-game')
+  const handleToggleReady = async () => {
+    const result = await callGameAPI('toggle-ready')
+    if (result.success) {
+      setRoom(result.room)
+    } else {
+      alert(result.error)
+    }
+  }
+
+  const handleRestartGame = async () => {
+    const result = await callGameAPI('restart-game')
     if (result.success) {
       setRoom(result.room)
     } else {
@@ -585,7 +594,6 @@ export default function RoomPage() {
 
   const currentPlayer = room.players.find(p => p.id === playerId)
   const isRoomOwner = room.players[0]?.id === playerId
-  const canStartGame = room.players.length === 2 && room.gameStatus === 'waiting' && isRoomOwner
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
@@ -960,21 +968,38 @@ export default function RoomPage() {
               
               {/* 游戏控制 */}
               <div className="mt-6 flex justify-center space-x-4">
-                {room.gameStatus === 'waiting' && canStartGame && (
+                {/* 等待和准备状态 */}
+                {(room.gameStatus === 'waiting' || room.gameStatus === 'ready') && currentPlayer && (
                   <Button 
-                    onClick={handleStartGame} 
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium px-8 py-3 rounded-xl shadow-lg transition-all"
+                    onClick={handleToggleReady} 
+                    className={cn(
+                      "font-medium px-8 py-3 rounded-xl shadow-lg transition-all",
+                      currentPlayer.ready 
+                        ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white" 
+                        : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                    )}
                   >
-                    开始游戏
+                    {currentPlayer.ready ? '取消准备' : '准备开始'}
                   </Button>
                 )}
                 
-                {room.gameStatus === 'waiting' && !canStartGame && (
+                {/* 显示等待状态 */}
+                {room.gameStatus === 'waiting' && room.players.length < 2 && (
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                     <p className="text-white/80 text-center font-medium">
-                      {room.players.length < 2 ? '等待另一位玩家加入...' : '等待房主开始游戏...'}
+                      等待另一位玩家加入...
                     </p>
                   </div>
+                )}
+                
+                {/* 游戏结束后的重新开始按钮 */}
+                {room.gameStatus === 'finished' && (
+                  <Button 
+                    onClick={handleRestartGame} 
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium px-8 py-3 rounded-xl shadow-lg transition-all"
+                  >
+                    重新开始
+                  </Button>
                 )}
               </div>
             </div>
@@ -1011,6 +1036,7 @@ export default function RoomPage() {
                     </div>
                     
                     <div className="flex items-center space-x-2">
+                      {/* 棋子颜色 */}
                       {player.color && (
                         <div
                           className={cn(
@@ -1021,6 +1047,8 @@ export default function RoomPage() {
                           )}
                         />
                       )}
+                      
+                      {/* 棋子类型 */}
                       <span className={cn(
                         "px-2 py-1 rounded-full text-xs font-medium",
                         player.color === 'black' 
@@ -1031,6 +1059,26 @@ export default function RoomPage() {
                       )}>
                         {player.color === 'black' ? '黑棋' : player.color === 'white' ? '白棋' : '观战'}
                       </span>
+                      
+                      {/* 准备状态 */}
+                      {room.gameStatus !== 'playing' && (
+                        <span className={cn(
+                          "px-2 py-1 rounded-full text-xs font-medium",
+                          player.ready 
+                            ? "bg-green-500/20 text-green-300 border border-green-500/30" 
+                            : "bg-red-500/20 text-red-300 border border-red-500/30"
+                        )}>
+                          {player.ready ? '已准备' : '未准备'}
+                        </span>
+                      )}
+                      
+                      {/* 胜局数 */}
+                      {player.wins > 0 && (
+                        <span className="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                          <Trophy className="h-3 w-3" />
+                          <span>{player.wins}</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1061,10 +1109,13 @@ export default function RoomPage() {
                     room.gameStatus === 'playing' 
                       ? "bg-green-500/20 text-green-300 border border-green-500/30" :
                     room.gameStatus === 'finished' 
-                      ? "bg-red-500/20 text-red-300 border border-red-500/30" 
+                      ? "bg-red-500/20 text-red-300 border border-red-500/30" :
+                    room.gameStatus === 'ready'
+                      ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
                       : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
                   )}>
                     {room.gameStatus === 'waiting' && '等待中'}
+                    {room.gameStatus === 'ready' && '已准备'}
                     {room.gameStatus === 'playing' && '进行中'}
                     {room.gameStatus === 'finished' && '已结束'}
                   </span>
@@ -1080,6 +1131,16 @@ export default function RoomPage() {
                         : "bg-white/10 text-white/60 border border-white/20"
                     )}>
                       {room.currentPlayer === currentPlayer.color ? '你的回合' : '对方回合'}
+                    </span>
+                  </div>
+                )}
+                
+                {/* 对局数显示 */}
+                {room.gameCount > 0 && (
+                  <div className="flex justify-between items-center bg-white/10 rounded-xl p-3">
+                    <span className="font-medium text-white/90">对局数</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      第 {room.gameCount} 局
                     </span>
                   </div>
                 )}
