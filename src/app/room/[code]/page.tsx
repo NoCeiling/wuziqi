@@ -2,12 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import type { Room } from '@/types/game'
 import { cn, generateRoomId } from '@/lib/utils'
-import { Copy, Users, Clock, Crown, User, ArrowLeft, Trophy, Settings, Palette } from 'lucide-react'
+import { Copy, Users, Clock, Crown, User, ArrowLeft, Trophy, Palette } from 'lucide-react'
 
 export default function RoomPage() {
   const params = useParams()

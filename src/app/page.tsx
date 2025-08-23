@@ -2,12 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { generateInviteCode, validateInviteCode } from '@/lib/utils'
-import { Users, Plus, LogIn, Gamepad2 } from 'lucide-react'
+import { Plus, LogIn, Gamepad2 } from 'lucide-react'
 
 export default function Home() {
   // 生成默认玩家名称
@@ -31,7 +27,7 @@ export default function Home() {
     if (!playerName) {
       setPlayerName(generateDefaultName())
     }
-  }, [])
+  }, [playerName])
 
   const handleCreateRoom = async () => {
     if (!playerName.trim()) {
