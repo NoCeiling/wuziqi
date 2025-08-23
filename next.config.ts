@@ -1,24 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 启用实验性功能
-  experimental: {
-    // 优化服务端组件（已更新为新的配置项）
-  },
-  
-  // 服务端外部包（新的配置项）
+  // 服务端外部包配置
   serverExternalPackages: ['socket.io'],
   
-  // 压缩和优化
+  // 压缩优化
   compress: true,
   
-  // 图片优化
+  // 图片优化配置
   images: {
-    domains: [],
     formats: ['image/webp', 'image/avif'],
   },
   
-  // 头部设置 - 支持 CORS
+  // 输出配置 - 确保与Vercel兼容
+  output: 'standalone',
+  
+  // CORS头部设置
   async headers() {
     return [
       {
@@ -29,7 +26,7 @@ const nextConfig: NextConfig = {
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
         ],
       },
-    ]
+    ];
   },
 };
 
