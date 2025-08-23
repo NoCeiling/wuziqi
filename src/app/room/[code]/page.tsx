@@ -62,12 +62,20 @@ export default function RoomPage() {
         setRoom(result.room)
         setError('')
       } else {
+        console.warn('获取房间状态失败:', result.error)
+        // 如果房间不存在，可能是服务器重启了，停止轮询
+        if (result.error === '房间不存在') {
+          setError('连接中断，房间可能已失效。请重新创建房间。')
+          // 停止轮询，避免持续的无效请求
+          return 'stop-polling'
+        }
         setError(result.error)
       }
     } catch (error) {
       console.error('Failed to fetch room state:', error)
       setError('网络错误')
     }
+    return 'continue'
   }, [code])
 
   // 初始化房间
@@ -110,7 +118,13 @@ export default function RoomPage() {
   useEffect(() => {
     if (!room) return
 
-    const interval = setInterval(fetchRoomState, 2000) // 每2秒轮询一次
+    const interval = setInterval(async () => {
+      const result = await fetchRoomState()
+      if (result === 'stop-polling') {
+        clearInterval(interval)
+      }
+    }, 2000) // 每2秒轮询一次
+    
     return () => clearInterval(interval)
   }, [room, fetchRoomState])
 
@@ -659,7 +673,8 @@ export default function RoomPage() {
 
               {renderBoard()}
               
-              {/* 棋盘调色板 */}
+              {/* 棋盘调色板 - 暂时隐藏 */}
+              {false && (
               <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-white text-sm font-medium">棋盘调色</h4>
@@ -951,7 +966,7 @@ export default function RoomPage() {
                     </div>
                   </div>
                 )}
-              </div>
+              )}
               
               {/* 游戏控制 */}
               <div className="mt-6 flex justify-center space-x-4">
