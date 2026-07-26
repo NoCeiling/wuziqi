@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish Game Guides"
+  short_description: "Select, validate, and safely publish guide sites"
+  default_prompt: "Use $publish-game-guides to inspect and dry-run a guide-site release before publishing explicit files."
