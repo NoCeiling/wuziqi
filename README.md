@@ -31,8 +31,22 @@ python scripts/site_release.py plan --site bagbattle --files content/secrets/exa
 
 The reusable `publish-game-guides` Skill is bundled under `skills/`. Its scripts locate this repository automatically when used in place. When installed elsewhere, set `GAME_GUIDE_STUDIO_ROOT` to this repository or keep it at one of the registered local installation paths.
 
-## Deployment Boundary
+## Hosted UI
 
-This is a local administration tool, not a public web application. Keep the HTTP server on loopback. Vercel deployment applies to the registered guide sites through their Git integrations; Game Guide Studio itself should not be exposed on Vercel because it reads and writes local repositories.
+The repository includes a static Vercel build for the Studio interface. The hosted interface connects to `http://127.0.0.1:8770`, while all repository access, validation, builds, and Git operations remain on this workstation. Start `python studio.py` before opening the hosted interface.
+
+The loopback server accepts browser requests only from localhost, the Studio's Vercel domain, `wiziqigo.com`, `wuziqigo.com`, and origins explicitly added through `GAME_GUIDE_STUDIO_ORIGINS`. It supports the browser private-network preflight without exposing the server on a public network interface.
+
+Build the hosted interface locally with:
+
+```powershell
+npm run build
+```
+
+The deployable output is written to `dist/`. Vercel hosts only these static files; it never receives the local site registry contents, Git credentials, or access to the registered repositories.
+
+## Security Boundary
+
+Keep the Python HTTP server on loopback. Vercel deployment hosts only the interface. The local server remains the control plane for editing and publishing the registered guide sites.
 
 XWOL is currently a release-only adapter. Its push remains blocked until its `origin` points to an owned repository and the local directory is linked to the correct Vercel project.

@@ -1,5 +1,10 @@
 "use strict";
 
+const LOOPBACK_API_ORIGIN = "http://127.0.0.1:8770";
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
+const CONFIGURED_API_ORIGIN = document.querySelector('meta[name="game-guide-studio-api-origin"]')?.content.trim() || "";
+const API_ORIGIN = CONFIGURED_API_ORIGIN || (LOOPBACK_HOSTS.has(window.location.hostname) ? "" : LOOPBACK_API_ORIGIN);
+
 const state = {
   sites: [],
   siteId: "",
@@ -68,15 +73,35 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-async function api(path, options = {}) {
-  const response = await fetch(path, {
-    ...options,
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...(state.siteId ? { "X-Guide-Site": state.siteId } : {}),
-      ...(options.headers || {}),
-    },
+function backendUrl(path) {
+  const value = String(path || "");
+  if (!value || /^(?:data:|blob:|https?:\/\/)/i.test(value)) return value;
+  const normalized = value.startsWith("/") ? value : `/${value}`;
+  return `${API_ORIGIN}${normalized}`;
+}
+
+function rewritePreviewAssets(container) {
+  container.querySelectorAll("img[src], source[src]").forEach((element) => {
+    const value = element.getAttribute("src") || "";
+    if (!/^(?:\/?assets\/articles\/|\/?image-cache\/)/.test(value)) return;
+    element.setAttribute("src", backendUrl(value));
   });
+}
+
+async function api(path, options = {}) {
+  let response;
+  try {
+    response = await fetch(backendUrl(path), {
+      ...options,
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(state.siteId ? { "X-Guide-Site": state.siteId } : {}),
+        ...(options.headers || {}),
+      },
+    });
+  } catch {
+    throw new Error("无法连接本机 Studio，请确认 python studio.py 正在运行");
+  }
   let payload = {};
   try {
     payload = await response.json();
@@ -237,7 +262,7 @@ function buildRequirements() {
 
 function itemImageMarkup(item) {
   if (!item?.image) return '<span class="build-item-image build-item-image--empty" aria-hidden="true">?</span>';
-  return `<img class="build-item-image" src="${escapeHtml(item.image)}" alt="" loading="lazy">`;
+  return `<img class="build-item-image" src="${escapeHtml(backendUrl(item.image))}" alt="" loading="lazy">`;
 }
 
 function renderBuildRoles() {
@@ -560,6 +585,7 @@ async function renderPreview() {
       body: JSON.stringify({ markdown, metadata: currentMetadata() }),
     });
     elements.articlePreview.innerHTML = payload.html || '<p class="list-empty">正文为空</p>';
+    rewritePreviewAssets(elements.articlePreview);
     elements.previewStatus.textContent = `实时预览 · ${state.config.languages[state.currentLanguage].label}`;
     renderAudit(payload.audit);
   } catch (error) {
@@ -909,7 +935,7 @@ async function loadSite() {
     state.articles = articles.articles;
     state.items = items.items;
     state.itemById = new Map(state.items.map((item) => [item.id, item]));
-    const logoUrl = `/api/site-logo?site=${encodeURIComponent(state.siteId)}`;
+    const logoUrl = backendUrl(`/api/site-logo?site=${encodeURIComponent(state.siteId)}`);
     elements.siteLogo.src = logoUrl;
     elements.emptySiteLogo.src = logoUrl;
     elements.brandTitle.textContent = config.site.name;
