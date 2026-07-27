@@ -26,6 +26,7 @@ WEB_ROOT = ROOT / "web"
 MAX_REQUEST_BYTES = 12 * 1024 * 1024
 BUILD_LOCK = threading.Lock()
 DEFAULT_HOSTED_ORIGINS = {
+    "https://game-guide-studio.vercel.app",
     "https://wiziqigo.com",
     "https://www.wiziqigo.com",
     "https://wuziqigo.com",

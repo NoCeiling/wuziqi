@@ -35,7 +35,7 @@ The reusable `publish-game-guides` Skill is bundled under `skills/`. Its scripts
 
 The repository includes a static Vercel build for the Studio interface. The hosted interface connects to `http://127.0.0.1:8770`, while all repository access, validation, builds, and Git operations remain on this workstation. Start `python studio.py` before opening the hosted interface.
 
-The loopback server accepts browser requests only from localhost, `wiziqigo.com`, `wuziqigo.com`, and origins explicitly added through `GAME_GUIDE_STUDIO_ORIGINS`. It supports the browser private-network preflight without exposing the server on a public network interface.
+The loopback server accepts browser requests only from localhost, the Studio's Vercel domain, `wiziqigo.com`, `wuziqigo.com`, and origins explicitly added through `GAME_GUIDE_STUDIO_ORIGINS`. It supports the browser private-network preflight without exposing the server on a public network interface.
 
 Build the hosted interface locally with:
 

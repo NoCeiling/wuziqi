@@ -17,6 +17,7 @@ from studio import StudioHandler, origin_is_allowed  # noqa: E402
 
 class OriginTests(unittest.TestCase):
     def test_known_hosted_and_loopback_origins_are_allowed(self) -> None:
+        self.assertTrue(origin_is_allowed("https://game-guide-studio.vercel.app"))
         self.assertTrue(origin_is_allowed("https://www.wuziqigo.com"))
         self.assertTrue(origin_is_allowed("https://www.wuziqigo.com"))
         self.assertTrue(origin_is_allowed("http://127.0.0.1:3000"))
