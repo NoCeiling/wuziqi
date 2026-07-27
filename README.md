@@ -1,124 +1,38 @@
-# 🎮 在线五子棋游戏
+# Game Guide Studio
 
-一个精美的在线五子棋游戏，支持实时多人对战，使用 Next.js 构建，完美适配 Vercel 部署。
+Game Guide Studio is a loopback-only control plane for editing and publishing multiple game-guide sites. It keeps site identity, local repository roots, validation commands, and Vercel Git release rules in `sites.json`, while site-specific content behavior stays in adapters.
 
-## ✨ 功能特点
+## Start
 
-- 🎯 **实时对战** - 支持两人实时五子棋对战
-- 🔗 **邀请码系统** - 生成6位邀请码，轻松邀请朋友
-- 🎨 **精美界面** - 现代化设计，响应式布局
-- 📱 **多设备支持** - 完美适配桌面端和移动端
-- ⚡ **快速部署** - 一键部署到 Vercel
-- 🏆 **智能判胜** - 自动检测五子连珠获胜
+Requirements: Python 3.11 or newer and the registered game-site repositories on the same machine.
 
-## 🚀 快速开始
-
-### 本地开发
-
-1. **克隆项目**
-```bash
-git clone <repository-url>
-cd wuziqi
+```powershell
+python studio.py
 ```
 
-2. **安装依赖**
-```bash
-npm install
+Open `http://127.0.0.1:8770/studio/`.
+
+Edit `sites.json` when repository roots, branches, Git remotes, or Vercel projects change. The checked-in registry contains the current `bagbattle` and `xwol` configuration for this workstation.
+
+## Release CLI
+
+Inspect, build, validate, and dry-run a release:
+
+```powershell
+python scripts/site_release.py status --site bagbattle
+python scripts/site_release.py build --site bagbattle
+python scripts/site_release.py validate --site bagbattle
+python scripts/site_release.py plan --site bagbattle --files content/secrets/example-slug
 ```
 
-3. **启动开发服务器**
-```bash
-npm run dev
-```
+`publish` stays in dry-run mode unless both `--execute` and `--confirm <siteId>` are supplied. It stages only explicit allowlisted paths and refuses existing staged changes, branch divergence, unapproved remotes, missing Vercel links, or failed validation.
 
-4. **打开浏览器**
-访问 [http://localhost:3000](http://localhost:3000)
+## Codex Skill
 
-### 🔧 Vercel 部署
+The reusable `publish-game-guides` Skill is bundled under `skills/`. Its scripts locate this repository automatically when used in place. When installed elsewhere, set `GAME_GUIDE_STUDIO_ROOT` to this repository or keep it at one of the registered local installation paths.
 
-#### 方法一：通过 Vercel CLI
+## Deployment Boundary
 
-1. **安装 Vercel CLI**
-```bash
-npm i -g vercel
-```
+This is a local administration tool, not a public web application. Keep the HTTP server on loopback. Vercel deployment applies to the registered guide sites through their Git integrations; Game Guide Studio itself should not be exposed on Vercel because it reads and writes local repositories.
 
-2. **登录 Vercel**
-```bash
-vercel login
-```
-
-3. **部署项目**
-```bash
-vercel
-```
-
-#### 方法二：通过 Vercel 网站
-
-1. 访问 [vercel.com](https://vercel.com)
-2. 登录你的账号
-3. 点击 "New Project"
-4. 导入你的 Git 仓库
-5. 选择框架为 "Next.js"
-6. 点击 "Deploy"
-
-## 🎮 如何游戏
-
-1. **输入玩家名称** - 在主页输入你的名字
-2. **创建房间** - 点击"创建新房间"生成邀请码
-3. **邀请朋友** - 分享房间代码给朋友
-4. **开始对战** - 等朋友加入后点击"开始游戏"
-5. **轮流下棋** - 黑棋先手，连成五子获胜！
-
-## 🛠️ 技术栈
-
-- **前端框架**: Next.js 15
-- **样式**: Tailwind CSS + shadcn/ui
-- **类型安全**: TypeScript
-- **部署平台**: Vercel
-- **状态管理**: React Hooks
-- **实时通信**: HTTP 轮询（适配 Vercel 无服务器环境）
-
-## 🎯 游戏规则
-
-- 🔸 **棋盘**: 15×15 格子
-- ⚫ **黑棋先手**: 房主默认为黑棋
-- ⚪ **白棋后手**: 第二位玩家为白棋
-- 🏆 **获胜条件**: 横、竖、斜任意方向连成五子
-- 🔄 **轮流下棋**: 每次只能下一颗棋子
-
-## 🌟 特色功能
-
-### 🔐 邀请码系统
-- 自动生成6位随机邀请码
-- 大写字母和数字组合
-- 一键复制分享
-
-### 🎨 精美界面
-- 渐变背景设计
-- 卡片式布局
-- 图标丰富的按钮
-- 实时状态显示
-
-### 📱 响应式设计
-- 桌面端：侧边栏布局
-- 移动端：垂直堆叠布局
-- 自适应棋盘大小
-
-## 🔧 环境要求
-
-- Node.js 18+ 
-- npm 或 yarn
-- 现代浏览器（支持 ES6+）
-
-## 🤝 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-MIT License
-
----
-
-**立即体验在线五子棋游戏！** 🎉
+XWOL is currently a release-only adapter. Its push remains blocked until its `origin` points to an owned repository and the local directory is linked to the correct Vercel project.

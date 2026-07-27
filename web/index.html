@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Game Guide Studio</title>
+  <link rel="stylesheet" href="/studio/studio.css">
+</head>
+<body data-mobile-view="editor">
+  <header class="app-header">
+    <div class="brand-lockup">
+      <button class="icon-text-button mobile-only" id="sidebarToggle" type="button" aria-label="打开文章库">文章库</button>
+      <img id="siteLogo" src="/api/site-logo?site=bagbattle" alt="当前攻略站 logo" width="34" height="34">
+      <div>
+        <strong id="brandTitle">Game Guide Studio</strong>
+        <span id="connectionState">正在读取站点注册表</span>
+      </div>
+      <label class="site-switcher">
+        <span class="sr-only">选择攻略站</span>
+        <select id="siteSelect" aria-label="选择攻略站"></select>
+      </label>
+    </div>
+    <div class="document-state" id="documentState" aria-live="polite">未选择文章</div>
+    <div class="header-actions">
+      <button class="secondary-button" id="themeToggle" type="button" title="切换明暗主题">明暗</button>
+      <button class="secondary-button" id="releaseCheckButton" type="button">发布检查</button>
+      <button class="secondary-button" id="buildButton" type="button">构建站点</button>
+      <button class="primary-button" id="saveButton" type="button" disabled>保存</button>
+    </div>
+  </header>
+
+  <div class="mobile-view-switch mobile-only" aria-label="工作视图">
+    <button type="button" data-mobile-mode="editor" class="is-active">编辑</button>
+    <button type="button" data-mobile-mode="preview">预览</button>
+    <button type="button" data-mobile-mode="ai">AI</button>
+  </div>
+
+  <main class="workspace-shell">
+    <aside class="article-sidebar" id="articleSidebar" aria-label="文章库">
+      <div class="sidebar-heading">
+        <div>
+          <h1>文章库</h1>
+          <p id="articleCount">读取中</p>
+        </div>
+        <button class="primary-button" id="newArticleButton" type="button">新建</button>
+      </div>
+      <label class="search-field">
+        <span class="sr-only">搜索文章</span>
+        <input id="articleSearch" type="search" placeholder="搜索标题、职业或 slug" autocomplete="off">
+      </label>
+      <div class="segmented-control" id="sectionFilter" aria-label="文章分区">
+        <button type="button" data-filter="all" class="is-active">全部</button>
+        <button type="button" data-filter="builds">构筑</button>
+        <button type="button" data-filter="secrets">秘闻</button>
+      </div>
+      <div class="article-list" id="articleList" aria-live="polite">
+        <div class="list-skeleton" aria-label="正在读取文章">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </aside>
+    <button class="sidebar-scrim mobile-only" id="sidebarScrim" type="button" aria-label="关闭文章库"></button>
+
+    <section class="editor-workspace" id="editorWorkspace">
+      <div class="empty-workspace" id="emptyWorkspace">
+        <img id="emptySiteLogo" src="/api/site-logo?site=bagbattle" alt="" width="72" height="72">
+        <h2 id="emptyTitle">选择文章开始编辑</h2>
+        <p id="emptyDescription">也可以新建一篇构筑或秘闻草稿。</p>
+        <button class="primary-button" id="emptyNewArticleButton" type="button">新建文章</button>
+      </div>
+
+      <div class="document-workspace is-hidden" id="documentWorkspace">
+        <details class="metadata-panel" id="metadataPanel">
+          <summary>
+            <span><strong id="metadataTitle">文章信息</strong><small id="metadataSummary">标题、分类、来源与复核状态</small></span>
+            <span class="metadata-summary-state" id="metadataSummaryState">展开编辑</span>
+          </summary>
+          <form class="metadata-form" id="metadataForm">
+            <label class="field field-wide">
+              <span>标题</span>
+              <input id="metaTitle" name="title" required maxlength="120">
+            </label>
+            <label class="field field-wide">
+              <span>摘要</span>
+              <textarea id="metaSummary" name="summary" rows="2" maxlength="240"></textarea>
+              <small><span id="summaryCount">0</span>/240</small>
+            </label>
+            <label class="field field-wide">
+              <span>列表预览</span>
+              <textarea id="metaPreview" name="preview" rows="2" maxlength="320"></textarea>
+            </label>
+            <div class="field field-wide">
+              <span>分区</span>
+              <div class="segmented-control compact" id="metaSection">
+                <button type="button" data-value="builds">构筑</button>
+                <button type="button" data-value="secrets">秘闻</button>
+              </div>
+            </div>
+            <label class="field" id="professionField">
+              <span>基础职业</span>
+              <select id="metaProfession" name="profession"></select>
+            </label>
+            <label class="field">
+              <span>流派 / 构筑名</span>
+              <input id="metaArchetype" name="archetype" maxlength="80">
+            </label>
+            <label class="field">
+              <span>分类</span>
+              <input id="metaCategory" name="category" maxlength="40">
+            </label>
+            <label class="field">
+              <span>标签</span>
+              <input id="metaTags" name="tags" placeholder="逗号分隔">
+            </label>
+            <label class="field">
+              <span>文章状态</span>
+              <select id="metaStatus" name="status">
+                <option value="draft">草稿</option>
+                <option value="published">已发布</option>
+                <option value="archived">已归档</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>来源类型</span>
+              <select id="metaSourceType" name="sourceType"></select>
+            </label>
+            <label class="field field-wide">
+              <span>来源链接</span>
+              <input id="metaSourceUrl" name="sourceUrl" type="url" placeholder="https://">
+            </label>
+            <label class="field">
+              <span>事实复核</span>
+              <select id="metaFacts" name="facts"></select>
+            </label>
+            <label class="field">
+              <span>编辑复核</span>
+              <select id="metaEditorial" name="editorial"></select>
+            </label>
+            <label class="field">
+              <span>翻译复核</span>
+              <select id="metaI18n" name="i18n"></select>
+            </label>
+            <label class="field field-wide">
+              <span>编辑备注</span>
+              <textarea id="metaNotes" name="notes" rows="3" placeholder="记录来源、ASR/OCR 疑点和待复核机制"></textarea>
+            </label>
+          </form>
+        </details>
+
+        <details class="build-data-panel is-hidden" id="buildDataPanel" open>
+          <summary>
+            <span>
+              <strong>构筑物品</strong>
+              <small id="buildDataSummary">0/4 类已填写 · 缺少玩家注意事项</small>
+            </span>
+            <label class="filter-toggle" id="recommendableControl">
+              <input id="recommendableToggle" type="checkbox">
+              <span class="toggle-track" aria-hidden="true"></span>
+              <span>加入物品筛选</span>
+            </label>
+          </summary>
+          <div class="build-data-content">
+            <div class="build-data-intro">
+              <p>每件物品只归入一个主要角色。四类物品和玩家注意事项全部完成后，文章才能加入物品筛选。</p>
+              <strong id="buildRequirementState">还没有填写构筑物品</strong>
+            </div>
+            <div class="build-role-grid" id="buildRoleGrid"></div>
+            <label class="build-notes-field" for="buildNotes">
+              <span><strong>玩家注意事项</strong><small>必填，每行一条</small></span>
+              <textarea id="buildNotes" rows="4" maxlength="4000" placeholder="例如：不要只因为出现一件启动物品就强行转型。&#10;例如：核心物品成型前需要保留恢复和前排。"></textarea>
+            </label>
+          </div>
+        </details>
+
+        <div class="document-toolbar">
+          <div class="language-control">
+            <label for="languageSelect">语言</label>
+            <select id="languageSelect"></select>
+          </div>
+          <div class="format-toolbar" id="formatToolbar" aria-label="Markdown 排版工具">
+            <button type="button" data-command="h2" title="二级标题">H2</button>
+            <button type="button" data-command="h3" title="三级标题">H3</button>
+            <button type="button" data-command="bold" title="粗体"><strong>B</strong></button>
+            <button type="button" data-command="italic" title="斜体"><i>I</i></button>
+            <button type="button" data-command="bullet" title="无序列表">• 列表</button>
+            <button type="button" data-command="number" title="有序列表">1. 列表</button>
+            <button type="button" data-command="quote" title="引用">引用</button>
+            <button type="button" data-command="link" title="链接">链接</button>
+            <button type="button" data-command="table" title="表格">表格</button>
+            <button type="button" data-command="image" title="上传并插入图片">图片</button>
+          </div>
+          <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+          <div class="word-count" id="wordCount">0 字</div>
+        </div>
+
+        <div class="writing-grid">
+          <section class="writing-pane" aria-label="Markdown 编辑器">
+            <textarea id="markdownEditor" spellcheck="true" aria-label="文章 Markdown 正文"></textarea>
+            <div class="drop-hint" id="dropHint">松开即可上传并插入图片</div>
+          </section>
+
+          <aside class="review-pane" aria-label="文章预览和 AI 优化">
+            <div class="review-tabs" role="tablist">
+              <button type="button" role="tab" aria-selected="true" data-review-tab="preview" class="is-active">实时预览</button>
+              <button type="button" role="tab" aria-selected="false" data-review-tab="ai">AI 优化</button>
+            </div>
+            <div class="review-content" id="previewPanel" data-review-panel="preview">
+              <div class="preview-status" id="previewStatus">等待正文</div>
+              <div class="article-preview markdown-body" id="articlePreview"></div>
+              <section class="audit-panel" aria-label="发布检查">
+                <h3>发布检查</h3>
+                <div id="auditList"></div>
+              </section>
+            </div>
+            <div class="review-content is-hidden" id="aiPanel" data-review-panel="ai">
+              <div class="ai-intro">
+                <h2>AI 编辑助手</h2>
+                <p id="aiAvailability">读取 AI 配置中</p>
+              </div>
+              <div class="segmented-control ai-modes" id="aiModes">
+                <button type="button" data-ai-mode="clarity" class="is-active">表达</button>
+                <button type="button" data-ai-mode="structure">结构</button>
+                <button type="button" data-ai-mode="seo">SEO</button>
+                <button type="button" data-ai-mode="fact-safety">事实安全</button>
+              </div>
+              <button class="primary-button full-width" id="optimizeButton" type="button">开始优化</button>
+              <div class="ai-empty" id="aiEmpty">
+                <p>AI 不会新增未经来源支持的数值、机制或强度结论。</p>
+              </div>
+              <div class="ai-result is-hidden" id="aiResult"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="newArticleDialog" class="dialog-shell">
+    <form method="dialog" id="newArticleForm">
+      <header>
+        <div><h2>新建文章</h2><p>先创建草稿，再补充正文与复核信息。</p></div>
+        <button class="secondary-button" value="cancel" type="submit">关闭</button>
+      </header>
+      <label class="field">
+        <span>标题</span>
+        <input id="newTitle" required maxlength="120" autofocus>
+      </label>
+      <label class="field">
+        <span>Slug</span>
+        <input id="newSlug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="backpack-battles-example-guide">
+        <small>创建后保持不变，用作公开文章地址。</small>
+      </label>
+      <div class="field">
+        <span>分区</span>
+        <div class="segmented-control" id="newSection">
+          <button type="button" data-value="builds" class="is-active">构筑</button>
+          <button type="button" data-value="secrets">秘闻</button>
+        </div>
+      </div>
+      <label class="field" id="newProfessionField">
+        <span>基础职业</span>
+        <select id="newProfession" required></select>
+      </label>
+      <label class="field">
+        <span>流派 / 构筑名</span>
+        <input id="newArchetype" maxlength="80">
+      </label>
+      <footer>
+        <button class="primary-button full-width" id="createArticleButton" type="submit">创建草稿</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="buildDialog" class="dialog-shell build-dialog">
+    <div>
+      <header>
+        <div><h2 id="buildDialogTitle">构建结果</h2><p id="buildDialogDescription">这里只生成源站文件，不会直接发布。</p></div>
+        <button class="secondary-button" id="closeBuildDialog" type="button">关闭</button>
+      </header>
+      <pre id="buildOutput"></pre>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/studio/studio.js"></script>
+</body>
+</html>

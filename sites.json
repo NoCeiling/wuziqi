@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "defaultSite": "bagbattle",
+  "sites": [
+    {
+      "id": "bagbattle",
+      "name": "背包乱斗攻略站",
+      "root": "F:\\bagbattle\\bagbattle",
+      "domain": "https://www.backpackbattles.top/",
+      "adapter": "bagbattle",
+      "logo": "logo.png",
+      "vercel": {
+        "provider": "vercel",
+        "projectName": "bagbattle",
+        "linkRequired": true
+      },
+      "git": {
+        "remote": "origin",
+        "branch": "main",
+        "allowedUrls": [
+          "https://github.com/NoCeiling/bagbattle.git"
+        ]
+      },
+      "commands": {
+        "build": ["python", "tools/secrets_cms.py", "build"],
+        "validate": [
+          ["python", "-m", "tools.test_article_studio"],
+          ["python", "tools/test_secrets_cms.py"]
+        ]
+      },
+      "publishing": {
+        "allowedPaths": [
+          "content/secrets",
+          "assets/articles",
+          "public/assets/articles",
+          "articles",
+          "data/secrets-articles.json",
+          "secrets-data.js",
+          "sitemap.xml"
+        ]
+      }
+    },
+    {
+      "id": "xwol",
+      "name": "希望 OL 攻略站",
+      "root": "F:\\XWOL\\xwol-site",
+      "domain": "https://xiwanggame.cn/",
+      "adapter": "release-only",
+      "logo": "public/images/site/logo_home.png",
+      "vercel": {
+        "provider": "vercel",
+        "projectName": "",
+        "linkRequired": true
+      },
+      "git": {
+        "remote": "origin",
+        "branch": "master",
+        "allowedUrls": [],
+        "blockedReason": "XWOL 的 origin 仍指向 JCodesMore/ai-website-cloner-template；请先改为你拥有并已连接 Vercel 的仓库。"
+      },
+      "commands": {
+        "build": ["npm", "run", "content:build"],
+        "validate": [
+          ["npm", "run", "content:verify"],
+          ["npm", "run", "check"]
+        ]
+      },
+      "publishing": {
+        "allowedPaths": [
+          "src/content/guides.ts",
+          "src/content/guide-articles.ts",
+          "content/generated",
+          "public/images"
+        ]
+      }
+    }
+  ]
+}
