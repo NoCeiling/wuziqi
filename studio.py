@@ -7,6 +7,7 @@ import argparse
 import importlib.util
 import json
 import mimetypes
+import os
 import re
 import sys
 import threading
@@ -24,6 +25,31 @@ ROOT = Path(__file__).resolve().parent
 WEB_ROOT = ROOT / "web"
 MAX_REQUEST_BYTES = 12 * 1024 * 1024
 BUILD_LOCK = threading.Lock()
+DEFAULT_HOSTED_ORIGINS = {
+    "https://wiziqigo.com",
+    "https://www.wiziqigo.com",
+    "https://wuziqigo.com",
+    "https://www.wuziqigo.com",
+}
+
+
+def allowed_origins() -> set[str]:
+    configured = {
+        value.strip().rstrip("/")
+        for value in os.environ.get("GAME_GUIDE_STUDIO_ORIGINS", "").split(",")
+        if value.strip()
+    }
+    return DEFAULT_HOSTED_ORIGINS | configured
+
+
+def origin_is_allowed(origin: str) -> bool:
+    normalized = origin.strip().rstrip("/")
+    if not normalized:
+        return True
+    parsed = urlsplit(normalized)
+    if parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost", "::1"}:
+        return True
+    return normalized in allowed_origins()
 
 
 class StudioError(Exception):
@@ -231,6 +257,25 @@ class StudioHandler(BaseHTTPRequestHandler):
     def _parsed(self):
         return urlsplit(self.path)
 
+    def _origin(self) -> str:
+        return self.headers.get("Origin", "").strip().rstrip("/")
+
+    def _require_allowed_origin(self) -> None:
+        if not origin_is_allowed(self._origin()):
+            raise StudioError("不允许的工作台来源", HTTPStatus.FORBIDDEN)
+
+    def _send_access_headers(self) -> None:
+        origin = self._origin()
+        if not origin or not origin_is_allowed(origin):
+            return
+        self.send_header("Access-Control-Allow-Origin", origin)
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Guide-Site")
+        self.send_header("Access-Control-Max-Age", "600")
+        self.send_header("Vary", "Origin")
+        if self.headers.get("Access-Control-Request-Private-Network", "").lower() == "true":
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+
     def _site_id(self) -> str:
         parsed = self._parsed()
         query_site = parse_qs(parsed.query).get("site", [""])[0]
@@ -263,6 +308,7 @@ class StudioHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self._send_access_headers()
         self.end_headers()
         self.wfile.write(body)
 
@@ -277,10 +323,12 @@ class StudioHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self._send_access_headers()
         self.send_header(
             "Content-Security-Policy",
             "default-src 'self'; img-src 'self' data: https:; style-src 'self'; "
-            "script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+            "script-src 'self'; connect-src 'self' http://127.0.0.1:8770; "
+            "object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
         )
         self.end_headers()
         self.wfile.write(body)
@@ -292,6 +340,7 @@ class StudioHandler(BaseHTTPRequestHandler):
             if path == "/":
                 self.send_response(HTTPStatus.FOUND)
                 self.send_header("Location", "/studio/")
+                self._send_access_headers()
                 self.end_headers()
                 return
             if path in {"/studio", "/studio/"}:
@@ -381,8 +430,18 @@ class StudioHandler(BaseHTTPRequestHandler):
     def do_PUT(self) -> None:  # noqa: N802
         self._handle()
 
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        try:
+            self._require_allowed_origin()
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self._send_access_headers()
+            self.end_headers()
+        except StudioError as exc:
+            self._send_json({"error": str(exc)}, int(exc.status))
+
     def _handle(self) -> None:
         try:
+            self._require_allowed_origin()
             self._dispatch()
         except (StudioError, RegistryError, ReleaseError) as exc:
             self._send_json({"error": str(exc)}, int(getattr(exc, "status", HTTPStatus.BAD_REQUEST)))
